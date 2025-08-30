@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+TYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -14,12 +14,12 @@
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-            background: #141B4D;
+            background: linear-gradient(135deg, #141B4D 0%, #00CFB4 100%);
             min-height: 100vh;
         }
         
         .container {
-            background: #ffffff;
+            background: #ffff;
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
@@ -143,7 +143,7 @@
 </head>
 <body>
     <div class="container">
-        <h1><img src="trinity-logo" alt="Logo" style="height: 40px; vertical-align: middle; margin-right: 10px;">Postcode Validator</h1>
+        <h1><img src="Screenshot 2025-08-30 at 10.43.27" alt="Logo" style="height: 40px; vertical-align: middle; margin-right: 10px;">Postcode Validator</h1>
         
         <div class="input-group">
             <label for="postcode">Enter Full Postcode:</label>
@@ -155,60 +155,335 @@
         <div id="result" class="result"></div>
         
         <div class="admin-section">
-            <h3>📋 Manage Your Postal Sectors & Outcodes</h3>
+            <h3>📋 Postal Sectors & Outcodes</h3>
             <div class="input-group">
-                <label for="postcodeList">Your List (one per line):</label>
-                <textarea id="postcodeList" placeholder="Enter your postal sectors and outcodes here, one per line:&#10;SW1A&#10;SW1A 1&#10;M1&#10;M1 1&#10;etc..."></textarea>
+                <label>Current List:</label>
+                <textarea id="postcodeList" readonly style="background: #f8f9fa; cursor: default;" placeholder="Your hardcoded postal codes will appear here..."></textarea>
                 <div class="help-text">
-                    Enter your mix of postal sectors (like "SW1A 1") and outcodes (like "SW1A"), one per line. 
-                    The tool will automatically match against the most specific entry available.
+                    This list is hardcoded into the tool. To modify it, update the HTML file and redeploy.
                 </div>
             </div>
             
-            <button class="btn" onclick="updateList()">Update List</button>
-            
             <div id="stats" class="stats">
-                <strong>Current list: 0 entries</strong>
+                <strong>Loading postal codes...</strong>
             </div>
         </div>
     </div>
 
     <script>
-        // Store the postal codes list
-        let postalCodes = [];
-        
-        // Load saved list from localStorage on page load
+        // Store the postal codes list - HARDCODED
+        let postalCodes = [
+            " BA10 " ,
+" BA13 " ,
+" BA11 " ,
+" BA12 " ,
+" BA14 " ,
+" BA15 " ,
+" BA2 " ,
+" BA3 " ,
+" BA4 " ,
+" BA7 " ,
+" BN2 " ,
+" BN20 " ,
+" BN21 " ,
+" BN22 " ,
+" BN23 " ,
+" BN24 " ,
+" BN25 " ,
+" BN26 " ,
+" BN27 " ,
+" BS10 " ,
+" BS11 " ,
+" BS14 " ,
+" BS15 " ,
+" BS16 " ,
+" BS30 " ,
+" BS32 " ,
+" BS34 " ,
+" BS35 " ,
+" BS36 " ,
+" BS37 " ,
+" BS6 " ,
+" BS7 " ,
+" BS8 " ,
+" BS9 " ,
+" CB8 " ,
+" CB10 " ,
+" E1 " ,
+" E14 " ,
+" E2 " ,
+" E3 " ,
+" E5 " ,
+" E8 " ,
+" E9 " ,
+" EC1 " ,
+" EC2 " ,
+" EC3 " ,
+" EC4 " ,
+" EN1 1 " ,
+" EN1 2 " ,
+" EN1 3 " ,
+" EN1 4 " ,
+" EN1 9 " ,
+" EN2 0 " ,
+" EN2 6 " ,
+" En2 7 " ,
+" EN2 8 " ,
+" EN2 9 " ,
+" EN3 4 " ,
+" EN3 5 " ,
+" EN3 6 " ,
+" EN3 7 " ,
+" EN4 0 " ,
+" EN4 8 " ,
+" EN4 9 " ,
+" EN6 1 " ,
+" EN6 2 " ,
+" EN6 3 " ,
+" EN6 4 " ,
+" EN6 5 " ,
+" EN6 9 " ,
+" GU10 " ,
+" GU11 " ,
+" GU12 " ,
+" GU13 " ,
+" GU14 " ,
+" GU15 " ,
+" GU16 " ,
+" GU17 " ,
+" GU18 " ,
+" GU19 " ,
+" GU1 " ,
+" GU2 " ,
+" GU20 " ,
+" GU21 " ,
+" GU22 " ,
+" GU23 " ,
+" GU24 " ,
+" GU3 " ,
+" GU4 " ,
+" GU5 " ,
+" GU52 " ,
+" GU6 " ,
+" GU7 " ,
+" GU8 " ,
+" GU9 " ,
+" GU9 " ,
+" HA1 1 " ,
+" HA1 2 " ,
+" HA1 3 " ,
+" HA1 4 " ,
+" HA1 9 " ,
+" HA2 0 " ,
+" HA2 2 " ,
+" HA2 6 " ,
+" HA2 7 " ,
+" HA2 8 " ,
+" HA2 9 " ,
+" HA4 0 " ,
+" HA4 4 " ,
+" HA4 6 " ,
+" HA4 7 " ,
+" HA4 8 " ,
+" HA4 9 " ,
+" HA5 1 " ,
+" HA5 2 " ,
+" HA5 3 " ,
+" HA5 4 " ,
+" HA5 5 " ,
+" HA5 9 " ,
+" HA6 1 " ,
+" HA6 2 " ,
+" HA6 3 " ,
+" HA6 9 " ,
+" HA7 1 " ,
+" HA7 2 " ,
+" HA7 3 " ,
+" HA7 4 " ,
+" HA7 9 " ,
+" IP14 " ,
+" IP27 " ,
+" IP28 " ,
+" IP28 " ,
+" IP29 " ,
+" IP30 " ,
+" IP31 " ,
+" IP32 " ,
+" IP33 " ,
+" KT1 " ,
+" KT10 " ,
+" KT11 " ,
+" KT12 " ,
+" KT13 " ,
+" KT15 " ,
+" KT16 " ,
+" KT17 " ,
+" KT18 " ,
+" KT19 " ,
+" KT2 " ,
+" KT20 " ,
+" CR5 " ,
+" KT21 " ,
+" KT22 " ,
+" KT24 " ,
+" KT3 " ,
+" KT4 " ,
+" KT5 " ,
+" KT6 " ,
+" KT7 " ,
+" KT8 " ,
+" KT9 " ,
+" N1 " ,
+" N11 1 " ,
+" N11 2 " ,
+" N11 3 " ,
+" N11 9 " ,
+" N13 4 " ,
+" N13 5 " ,
+" N13 6 " ,
+" N13 9 " ,
+" N14 4 " ,
+" N14 5 " ,
+" N14 6 " ,
+" N14 7 " ,
+" N14 9 " ,
+" N17 0 " ,
+" N17 1 " ,
+" N17 16 " ,
+" N17 7 " ,
+" N17 8 " ,
+" N17 9 " ,
+" N18 1 " ,
+" N18 2 " ,
+" N18 3 " ,
+" N18 9 " ,
+" N21 1 " ,
+" N21 2 " ,
+" N21 3 " ,
+" N21 9 " ,
+" N22 5 " ,
+" N22 6 " ,
+" N22 7 " ,
+" N22 8 " ,
+" N22 9 " ,
+" N5 " ,
+" N7 " ,
+" N9 0 " ,
+" N9 1 " ,
+" N9 7 " ,
+" N9 8 " ,
+" N9 9 " ,
+" NW1 " ,
+" NW10 " ,
+" NW2 " ,
+" NW6 " ,
+" NW8 " ,
+" rg9 " ,
+" RH11 " ,
+" RH18 " ,
+" RH19 " ,
+" RH8 " ,
+" RH7 " ,
+" RH10 " ,
+" SE1 " ,
+" SE11 " ,
+" SE16 " ,
+" SE17 " ,
+" SE5 " ,
+" SE8 " ,
+" SL4 " ,
+" SL5 " ,
+" SL6 " ,
+" SL7 " ,
+" SL8 " ,
+" SM1 " ,
+" SM2 " ,
+" SM3 " ,
+" SM4 " ,
+" SM5 " ,
+" SM6 " ,
+" SM7 " ,
+" SN10 " ,
+" SN12 " ,
+" SN13 " ,
+" SP3 " ,
+" SP8 " ,
+" tn8 " ,
+" SW3 " ,
+" SW5 " ,
+" SW6 " ,
+" SW7 " ,
+" SW8 " ,
+" TN13 " ,
+" TN15 " ,
+" TN21 " ,
+" TN22 " ,
+" TN39 " ,
+" TN7 " ,
+" TN8 " ,
+" UB10 0 " ,
+" UB10 8 " ,
+" UB10 9 " ,
+" UB5 4 " ,
+" UB9 4 " ,
+" UB9 5 " ,
+" UB9 6 " ,
+" W10 " ,
+" W11 " ,
+" W8 " ,
+" WC1 " ,
+" WC2 " ,
+" WD18 0 " ,
+" WD18 1 " ,
+" WD18 6 " ,
+" WD18 7 " ,
+" WD18 8 " ,
+" WD18 9 " ,
+" WD19 4 " ,
+" WD19 5 " ,
+" WD19 6 " ,
+" WD19 7 " ,
+" WD3 0 " ,
+" WD3 1 " ,
+" WD3 3 " ,
+" WD3 4 " ,
+" WD3 5 " ,
+" WD3 6 " ,
+" WD3 7 " ,
+" WD3 8 " ,
+" WD3 9 " ,
+" WD4 4 " ,
+" WD4 8 " ,
+" WD4 9 " ,
+" WD6 1 " ,
+" WD6 2 " ,
+" WD6 3 " ,
+" WD6 4 " ,
+" WD6 5 " ,
+" WD6 9 " ,
+        ];
+        postalCodes = postalCodes.map(code => code.trim().toUpperCase()).filter(code => code.length > 0);  
+        // Load and display the hardcoded list on page load
         window.onload = function() {
-            const savedList = localStorage.getItem('postalCodesList');
-            if (savedList) {
-                document.getElementById('postcodeList').value = savedList;
-                updateList();
-            }
+            updateStats();
+            showResult(`Ready! ${postalCodes.length} postal codes loaded.`, 'found');
         }
         
         function updateList() {
-            const listText = document.getElementById('postcodeList').value;
-            
-            // Split by lines and clean up each entry
-            postalCodes = listText
-                .split('\n')
-                .map(code => code.trim().toUpperCase())
-                .filter(code => code.length > 0);
-            
-            // Save to localStorage
-            localStorage.setItem('postalCodesList', listText);
-            
-            // Update stats
+            // This function is no longer needed since the list is hardcoded
+            // But keeping it in case of future modifications
             updateStats();
-            
-            // Show confirmation
-            showResult(`List updated! ${postalCodes.length} entries loaded.`, 'found');
+            showResult(`Hardcoded list active: ${postalCodes.length} entries loaded.`, 'found');
         }
         
         function updateStats() {
             const stats = document.getElementById('stats');
+            const listTextarea = document.getElementById('postcodeList');
             const outcodes = postalCodes.filter(code => !code.includes(' '));
             const sectors = postalCodes.filter(code => code.includes(' '));
+            
+            // Display the hardcoded list in the textarea
+            listTextarea.value = postalCodes.join('\n');
             
             stats.innerHTML = `
                 <strong>Current list: ${postalCodes.length} entries</strong><br>
