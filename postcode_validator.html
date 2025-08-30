@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postcode Validator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #3D3935;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: #141B4D;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #e0e0e0;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: #00CFB4;
+            color: black;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: transform 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .result.found {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .result.not-found {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .result.error {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .admin-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .admin-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+        
+        .stats {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><img src="/Users/oakleywalters/Desktop/Screenshot 2025-08-30 at 10.43.27.png" alt="Logo" style="height: 40px; vertical-align: middle; margin-right: 10px;">Postcode Validator</h1>
+        
+        <div class="input-group">
+            <label for="postcode">Enter Full Postcode:</label>
+            <input type="text" id="postcode" placeholder="e.g. SW1A 1AA or M1 1AA" autocomplete="off">
+        </div>
+        
+        <button class="btn" onclick="validatePostcode()">Check Postcode</button>
+        
+        <div id="result" class="result"></div>
+        
+        <div class="admin-section">
+            <h3>📋 Manage Your Postal Sectors & Outcodes</h3>
+            <div class="input-group">
+                <label for="postcodeList">Your List (one per line):</label>
+                <textarea id="postcodeList" placeholder="Enter your postal sectors and outcodes here, one per line:&#10;SW1A&#10;SW1A 1&#10;M1&#10;M1 1&#10;etc..."></textarea>
+                <div class="help-text">
+                    Enter your mix of postal sectors (like "SW1A 1") and outcodes (like "SW1A"), one per line. 
+                    The tool will automatically match against the most specific entry available.
+                </div>
+            </div>
+            
+            <button class="btn" onclick="updateList()">Update List</button>
+            
+            <div id="stats" class="stats">
+                <strong>Current list: 0 entries</strong>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store the postal codes list
+        let postalCodes = [];
+        
+        // Load saved list from localStorage on page load
+        window.onload = function() {
+            const savedList = localStorage.getItem('postalCodesList');
+            if (savedList) {
+                document.getElementById('postcodeList').value = savedList;
+                updateList();
+            }
+        }
+        
+        function updateList() {
+            const listText = document.getElementById('postcodeList').value;
+            
+            // Split by lines and clean up each entry
+            postalCodes = listText
+                .split('\n')
+                .map(code => code.trim().toUpperCase())
+                .filter(code => code.length > 0);
+            
+            // Save to localStorage
+            localStorage.setItem('postalCodesList', listText);
+            
+            // Update stats
+            updateStats();
+            
+            // Show confirmation
+            showResult(`List updated! ${postalCodes.length} entries loaded.`, 'found');
+        }
+        
+        function updateStats() {
+            const stats = document.getElementById('stats');
+            const outcodes = postalCodes.filter(code => !code.includes(' '));
+            const sectors = postalCodes.filter(code => code.includes(' '));
+            
+            stats.innerHTML = `
+                <strong>Current list: ${postalCodes.length} entries</strong><br>
+                <small>${outcodes.length} outcodes • ${sectors.length} postal sectors</small>
+            `;
+        }
+        
+        function validatePostcode() {
+            const input = document.getElementById('postcode').value.trim().toUpperCase();
+            
+            if (!input) {
+                showResult('Please enter a postcode', 'error');
+                return;
+            }
+            
+            if (postalCodes.length === 0) {
+                showResult('Please add your postal codes list first', 'error');
+                return;
+            }
+            
+            // Clean the input postcode
+            const cleanInput = input.replace(/\s+/g, ' ');
+            
+            // Extract outcode and sector from the input
+            const parts = cleanInput.split(' ');
+            if (parts.length !== 2) {
+                showResult('Please enter a valid full postcode (e.g. SW1A 1AA)', 'error');
+                return;
+            }
+            
+            const outcode = parts[0];
+            const inwardCode = parts[1];
+            const sectorDigit = inwardCode.charAt(0);
+            const sector = outcode + ' ' + sectorDigit;
+            
+            // Check for matches - prioritize sector over outcode
+            let matchFound = false;
+            let matchType = '';
+            let matchedEntry = '';
+            
+            // First check for exact sector match
+            if (postalCodes.includes(sector)) {
+                matchFound = true;
+                matchType = 'postal sector';
+                matchedEntry = sector;
+            }
+            // Then check for outcode match
+            else if (postalCodes.includes(outcode)) {
+                matchFound = true;
+                matchType = 'outcode';
+                matchedEntry = outcode;
+            }
+            
+            if (matchFound) {
+                showResult(`✅ Match found!<br><strong>${cleanInput}</strong> is covered by ${matchType}: <strong>${matchedEntry}</strong>`, 'found');
+            } else {
+                showResult(`❌ No match found<br><strong>${cleanInput}</strong> is not in your list`, 'not-found');
+            }
+        }
+        
+        function showResult(message, type) {
+            const result = document.getElementById('result');
+            result.innerHTML = message;
+            result.className = `result ${type}`;
+            result.style.display = 'block';
+        }
+        
+        // Allow Enter key to trigger validation
+        document.getElementById('postcode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                validatePostcode();
+            }
+        });
+    </script>
+</body>
+</html>
